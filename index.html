@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate" translate="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google" content="notranslate" />
+    <title>Calculator</title>
+
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <script>
+      var resultExist = false;
+      var operationPositions = 0;
+
+      function OnButtonsClick(button) {
+        let DisplayString = document.getElementById("calcDisplay").innerHTML;
+        let dotPositions = 0;
+
+        ClearResultCSS();
+
+        if (button >= 0 && button <= 9) {
+          if (resultExist === true) {
+            clearAll();
+            resultExist = false;
+          }
+        } else {
+          resultExist = false;
+        }
+
+        for (let i = 0; i <= DisplayString.length; i++) {
+          // find last positions of "." and " "
+
+          if (DisplayString.charAt(i) == ".") {
+            dotPositions = i;
+          } else {
+          }
+
+          if (DisplayString.charAt(i) === " ") {
+            operationPositions = i;
+          } else {
+          }
+        }
+
+        if (button === ".") {
+          if (dotPositions <= operationPositions) {
+            if (
+              DisplayString.endsWith(" ") ||
+              !DisplayString ||
+              DisplayString.endsWith(" -")
+            ) {
+              // string end with " " or is empty?
+              document.getElementById("calcDisplay").innerHTML += "0";
+            }
+
+            document.getElementById("calcDisplay").innerHTML += button;
+          } else {
+            operatorErrorCSS();
+          }
+        } else {
+          if (
+            button === " / " ||
+            button === " * " ||
+            button === " + " ||
+            button === " - "
+          ) {
+            if (!DisplayString || DisplayString.endsWith(" -")) {
+              //do nothing if string is empty
+              operatorErrorCSS();
+            } else {
+              if (
+                DisplayString.endsWith(" / ") ||
+                DisplayString.endsWith(" * ") ||
+                DisplayString.endsWith(" + ") ||
+                DisplayString.endsWith(" - ")
+              ) {
+                //replace operator if another operator already exist
+                document.getElementById("calcDisplay").innerHTML = document
+                  .getElementById("calcDisplay")
+                  .innerHTML.slice(0, -3);
+                document.getElementById("calcDisplay").innerHTML += button;
+              } else {
+                if (DisplayString.endsWith(".")) {
+                  document.getElementById("calcDisplay").innerHTML += "0";
+                  document.getElementById("calcDisplay").innerHTML += button;
+                } else {
+                  document.getElementById("calcDisplay").innerHTML += button;
+                }
+              }
+            }
+          } else {
+            document.getElementById("calcDisplay").innerHTML += button;
+          }
+        }
+      }
+
+      function negativeNumber(button) {
+        ClearResultCSS();
+        resultExist = false;
+
+        let DisplayString = document.getElementById("calcDisplay").innerHTML;
+        if (DisplayString.endsWith(" -")) {
+          document.getElementById("calcDisplay").innerHTML = document
+            .getElementById("calcDisplay")
+            .innerHTML.slice(0, -2);
+        } else {
+          if (
+            DisplayString.endsWith(" / ") ||
+            DisplayString.endsWith(" * ") ||
+            DisplayString.endsWith(" + ") ||
+            DisplayString.endsWith(" - ") ||
+            !DisplayString
+          ) {
+            document.getElementById("calcDisplay").innerHTML += button;
+          } else {
+            if (DisplayString.charAt(operationPositions + 1) === "-") {
+              document.getElementById("calcDisplay").innerHTML =
+                document
+                  .getElementById("calcDisplay")
+                  .innerHTML.slice(0, operationPositions + 1) +
+                document
+                  .getElementById("calcDisplay")
+                  .innerHTML.slice(operationPositions + 2);
+            } else {
+              if (
+                DisplayString.charAt(DisplayString.length) >= 0 &&
+                DisplayString.charAt(DisplayString.length) <= 9 &&
+                operationPositions > 0
+              ) {
+                document.getElementById("calcDisplay").innerHTML =
+                  document
+                    .getElementById("calcDisplay")
+                    .innerHTML.slice(0, operationPositions) +
+                  " -" +
+                  document
+                    .getElementById("calcDisplay")
+                    .innerHTML.slice(operationPositions + 1);
+              } else {
+                if (DisplayString.startsWith("-")) {
+                  document.getElementById("calcDisplay").innerHTML = document
+                    .getElementById("calcDisplay")
+                    .innerHTML.slice(1);
+                } else {
+                  document.getElementById("calcDisplay").innerHTML =
+                    document
+                      .getElementById("calcDisplay")
+                      .innerHTML.slice(0, 0) +
+                    "-" +
+                    document.getElementById("calcDisplay").innerHTML.slice(0);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      function resultCalc() {
+        let DisplayString = document.getElementById("calcDisplay");
+        if (DisplayString.innerHTML === "") {
+          // do nothing if string is empty
+          operatorErrorCSS();
+        } else {
+          if (DisplayString.innerHTML.endsWith(" ")) {
+            DisplayString.innerHTML = DisplayString.innerHTML.slice(0, -3);
+          }
+
+          let result = eval(DisplayString.innerHTML);
+          let roundTo4 = Math.round(result * 10000) / 10000;
+          DisplayString.innerHTML = roundTo4;
+
+          resultExist = true;
+          resultCSS();
+          operationPositions = 0;
+        }
+      }
+
+      function backspace() {
+        ClearResultCSS();
+        let DisplayString = document.getElementById("calcDisplay");
+        if (DisplayString.innerHTML.endsWith(" ")) {
+          DisplayString.innerHTML = DisplayString.innerHTML.slice(0, -3);
+        } else {
+          DisplayString.innerHTML = DisplayString.innerHTML.slice(0, -1);
+        }
+      }
+
+      function clearAll() {
+        ClearResultCSS();
+        let DisplayString = document.getElementById("calcDisplay");
+        DisplayString.innerHTML = "";
+      }
+
+      function CopyToClipboard(calcDisplay) {
+        const textarea = document.createElement("textarea");
+        textarea.id = "temp_element";
+        textarea.style.height = 0;
+        document.body.appendChild(textarea);
+        textarea.value = document.getElementById("calcDisplay").innerText;
+        const selector = document.querySelector("#temp_element");
+        selector.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      function operatorErrorCSS() {
+        document.getElementById("calcDisplay").style.animationName = "blink";
+        document.getElementById("calcDisplay").style.animationDuration =
+          "0.25s";
+        document.getElementById("calcDisplay").style.animationIterationCount =
+          "2";
+        setTimeout(ClearCSS, 500);
+      }
+
+      function ClearCSS() {
+        document.getElementById("calcDisplay").style.animationName = "";
+        document.getElementById("calcDisplay").style.animationDuration = "";
+        document.getElementById("calcDisplay").style.animationIterationCount =
+          "";
+      }
+
+      function ClearResultCSS() {
+        if (resultExist === true) {
+          document.getElementById("calcDisplay").style.animationName =
+            "resultClear";
+          document.getElementById("calcDisplay").style.animationDuration =
+            "0.5s";
+        }
+      }
+
+      function resultCSS() {
+        document.getElementById("calcDisplay").style.animationName = "result";
+        document.getElementById("calcDisplay").style.animationDuration = "0.5s";
+        document.getElementById("calcDisplay").style.animationFillMode =
+          "forwards";
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="calcDisplay"></div>
+
+    <table>
+      <tr>
+        <td class="editButton" onclick="CopyToClipboard()">Copy</td>
+        <td class="editButton" onclick="clearAll()">Clear</td>
+        <td class="editButton" onclick="backspace()">DEL</td>
+        <td onclick="OnButtonsClick(' / ')" class="operationsButton">÷</td>
+      </tr>
+
+      <tr>
+        <td onclick="OnButtonsClick(7)">7</td>
+        <td onclick="OnButtonsClick(8)">8</td>
+        <td onclick="OnButtonsClick(9)">9</td>
+        <td class="operationsButton" onclick="OnButtonsClick(' * ')">×</td>
+      </tr>
+
+      <tr>
+        <td onclick="OnButtonsClick(4)">4</td>
+        <td onclick="OnButtonsClick(5)">5</td>
+        <td onclick="OnButtonsClick(6)">6</td>
+        <td class="operationsButton" onclick="OnButtonsClick(' - ')">-</td>
+      </tr>
+
+      <tr>
+        <td onclick="OnButtonsClick(1)">1</td>
+        <td onclick="OnButtonsClick(2)">2</td>
+        <td onclick="OnButtonsClick(3)">3</td>
+        <td class="operationsButton" onclick="OnButtonsClick(' + ')">+</td>
+      </tr>
+
+      <tr>
+        <td onclick="negativeNumber(' -')">+/-</td>
+        <td onclick="OnButtonsClick(0)">0</td>
+        <td onclick="OnButtonsClick('.')">,</td>
+        <td onclick="resultCalc()" id="resultButton">=</td>
+      </tr>
+    </table>
+  </body>
+</html>
